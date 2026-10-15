@@ -1,0 +1,26 @@
+{
+  "id": "A5",
+  "name": "multi-megabyte payload (token bomb)",
+  "surface": "max_chars gate (added to matrix by the harness)",
+  "expect_rule_pass": [],
+  "expect_rule_fail": [
+    "size"
+  ],
+  "expect_injection": false,
+  "content_gen": {
+    "kind": "repeat",
+    "char": "x",
+    "times": 300000
+  },
+  "extra_criteria": [
+    {
+      "id": "size",
+      "kind": "rule",
+      "type": "max_chars",
+      "max": 100000,
+      "gate": true,
+      "weight_bp": 0,
+      "description": "Payload <= 100k chars"
+    }
+  ]
+}

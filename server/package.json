@@ -1,0 +1,17 @@
+{
+  "name": "payonpass-server",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "PayOnPass PayPal Server SDK service (isolated from the marketing frontend).",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@paypal/paypal-server-sdk": "^1.0.0",
+    "body-parser": "^2.3.0",
+    "dotenv": "^18.0.7",
+    "express": "^5.3.0"
+  }
+}

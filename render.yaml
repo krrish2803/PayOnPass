@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: payonpass
+    runtime: python
+    buildCommand: "pip install -r requirements.txt && (cd dashboard && npm ci && npm run build || echo 'dashboard build skipped')"
+    startCommand: "uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: NODE_VERSION
+        value: 20.20.2
+      - key: PAYPAL_CLIENT_ID
+        sync: false
+      - key: PAYPAL_CLIENT_SECRET
+        sync: false
+      - key: PAYPAL_WORKER_EMAIL
+        sync: false
+      - key: LLM_PROVIDER
+        value: gemini
+      - key: LLM_API_KEY
+        sync: false
+      - key: PLATFORM_FEE_BP
+        value: 1000

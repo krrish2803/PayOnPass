@@ -1,0 +1,353 @@
+{
+  "info": {
+    "name": "PayOnPass API",
+    "_postman_id": "c1f7a4e2-6349-411f-8dc3-payonpass001",
+    "description": "PayOnPass — verify-before-release PayPal + AI settlement gateway.\n\nRoutes are served at the app root (no /api prefix on the core loop). Sandbox only.\n\nVariables:\n- baseUrl  default http://localhost:8000\n- jobId    captured automatically by the Create Job request's test script\n- apiKey   set this when AGENT_API_KEYS is configured on the server\n\nHappy path: Create Job -> Fund -> Submit Deliverable -> (settles or routes to Review) -> Get Job / Verify Chain.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8000" },
+    { "key": "jobId", "value": "" },
+    { "key": "apiKey", "value": "" },
+    { "key": "workerEmail", "value": "sb-z476or53293310@personal.example.com" }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": ["{{baseUrl}}"],
+          "path": ["health"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 200', () => pm.response.to.have.status(200));",
+              "pm.test('healthy', () => pm.expect(pm.response.json().status).to.eql('healthy'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Core loop",
+      "item": [
+        {
+          "name": "Create Job",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"prompt\": \"Write 5 product descriptions for an organic cotton T-shirt shop, 90 to 110 words each, including the words 'organic' and 'cotton', professional tone.\",\n  \"price_cents\": 2000,\n  \"worker_email\": \"{{workerEmail}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/jobs",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('created 201', () => pm.response.to.have.status(201));",
+                  "const body = pm.response.json();",
+                  "pm.collectionVariables.set('jobId', body.id);",
+                  "pm.test('has matrix', () => pm.expect(body.matrix.criteria).to.be.an('array'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Fund Job (live: returns approval_url)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/jobs/{{jobId}}/fund",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "{{jobId}}", "fund"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('funded', () => pm.response.to.have.status(200) || pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PayPal Return (capture)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/paypal/return?job_id={{jobId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["paypal", "return"],
+              "query": [{ "key": "job_id", "value": "{{jobId}}" }]
+            }
+          }
+        },
+        {
+          "name": "PayPal Cancel",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/paypal/cancel?job_id={{jobId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["paypal", "cancel"],
+              "query": [{ "key": "job_id", "value": "{{jobId}}" }]
+            }
+          }
+        },
+        {
+          "name": "Submit Deliverable",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"[ {\\\"title\\\": \\\"Organic Tee\\\", \\\"description\\\": \\\"A soft organic cotton shirt made for everyday comfort and lasting durability, designed with breathable natural fibers that keep you cool and dry while caring for the planet and your skin alike.\\\" } ]\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/jobs/{{jobId}}/submit",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "{{jobId}}", "submit"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('submitted 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('has decision', () => pm.expect(body.decision).to.be.a('string'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Job",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/jobs/{{jobId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "{{jobId}}"]
+            }
+          }
+        },
+        {
+          "name": "List Jobs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/jobs",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs"]
+            }
+          }
+        },
+        {
+          "name": "Job Receipts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/jobs/{{jobId}}/receipts",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "{{jobId}}", "receipts"]
+            }
+          }
+        },
+        {
+          "name": "Ledger Events",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/ledger/events?job_id={{jobId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["ledger", "events"],
+              "query": [{ "key": "job_id", "value": "{{jobId}}" }]
+            }
+          }
+        },
+        {
+          "name": "Master Rollup",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/master",
+              "host": ["{{baseUrl}}"],
+              "path": ["master"]
+            }
+          }
+        },
+        {
+          "name": "Verify Chain",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/verify-chain",
+              "host": ["{{baseUrl}}"],
+              "path": ["verify-chain"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('chain valid', () => pm.expect(pm.response.json().valid).to.be.true);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Human review",
+      "item": [
+        {
+          "name": "List Open Reviews",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/reviews",
+              "host": ["{{baseUrl}}"],
+              "path": ["reviews"]
+            }
+          }
+        },
+        {
+          "name": "Decide (APPROVE | ADJUST | REJECT)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"decision\": \"ADJUST\",\n  \"score_bp\": 8000,\n  \"note\": \"Borderline tone accepted at 80%.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/review/{{jobId}}/decide",
+              "host": ["{{baseUrl}}"],
+              "path": ["review", "{{jobId}}", "decide"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Webhooks",
+      "item": [
+        {
+          "name": "PayPal Webhook (signature-verified)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Paypal-Transmission-Id", "value": "" },
+              { "key": "Paypal-Transmission-Time", "value": "" },
+              { "key": "Paypal-Transmission-Sig", "value": "" },
+              { "key": "Paypal-Cert-Url", "value": "" },
+              { "key": "Paypal-Auth-Algo", "value": "" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"WH-DEMO-1\",\n  \"event_type\": \"PAYMENT.CAPTURE.COMPLETED\",\n  \"resource\": {\n    \"id\": \"CAPTURE-1\",\n    \"custom_id\": \"{{jobId}}\",\n    \"amount\": { \"value\": \"20.00\", \"currency_code\": \"USD\" }\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/webhooks/paypal",
+              "host": ["{{baseUrl}}"],
+              "path": ["webhooks", "paypal"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Agent API (needs X-API-Key)",
+      "item": [
+        {
+          "name": "Agent Create Job",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-API-Key", "value": "{{apiKey}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"prompt\": \"Write 5 product descriptions for an organic cotton T-shirt shop, 90 to 110 words each.\",\n  \"price_cents\": 2000\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/agent/jobs",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "agent", "jobs"]
+            }
+          }
+        },
+        {
+          "name": "Agent Fund Job",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "X-API-Key", "value": "{{apiKey}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/agent/jobs/{{jobId}}/fund",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "agent", "jobs", "{{jobId}}", "fund"]
+            }
+          }
+        },
+        {
+          "name": "Agent Submit Deliverable",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-API-Key", "value": "{{apiKey}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"[ {\\\"title\\\": \\\"Organic Tee\\\", \\\"description\\\": \\\"A soft organic cotton shirt built for comfort.\\\" } ]\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/agent/jobs/{{jobId}}/submit",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "agent", "jobs", "{{jobId}}", "submit"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

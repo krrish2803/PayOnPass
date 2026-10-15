@@ -1,0 +1,13 @@
+{
+  "id": "A4",
+  "name": "plain text instead of JSON",
+  "surface": "json_schema gate",
+  "expect_rule_pass": [],
+  "expect_rule_fail": [
+    "schema",
+    "length",
+    "terms"
+  ],
+  "expect_injection": false,
+  "content": "Here are five lovely t-shirts. They are great. Trust me, this is fine."
+}

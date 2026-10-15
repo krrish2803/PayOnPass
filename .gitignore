@@ -1,0 +1,29 @@
+# Environment & Virtualenv
+.env
+.venv/
+env/
+venv/
+ENV/
+
+# Python cache & artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.hypothesis/
+.coverage
+htmlcov/
+
+# Database
+*.db
+*.sqlite3
+settle.db
+
+# Node / Web
+node_modules/
+web/node_modules/
+server/node_modules/
+dashboard/node_modules/
+web/dist/
+dashboard/dist/
+.DS_Store

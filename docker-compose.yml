@@ -1,0 +1,38 @@
+services:
+  mongo:
+    image: mongo:7
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mongo
+    environment:
+      - MONGODB_URI=mongodb://mongo:27017
+      - MONGODB_DB=payonpass
+      - PAYPAL_CLIENT_ID=${PAYPAL_CLIENT_ID}
+      - PAYPAL_CLIENT_SECRET=${PAYPAL_CLIENT_SECRET}
+      - PAYPAL_BASE_URL=${PAYPAL_BASE_URL:-https://api-m.sandbox.paypal.com}
+      - PAYPAL_WORKER_EMAIL=${PAYPAL_WORKER_EMAIL:-sandbox-worker@example.com}
+      - PAYPAL_WEBHOOK_ID=${PAYPAL_WEBHOOK_ID}
+      - FUNDING_MODE=${FUNDING_MODE:-live}
+      - SETTLE_MODE=${SETTLE_MODE:-paypal}
+      - LLM_PROVIDER=${LLM_PROVIDER:-gemini}
+      - LLM_MODEL=${LLM_MODEL:-gemini-2.5-flash}
+      - LLM_API_KEY=${LLM_API_KEY}
+      - FEE_RATE_BP=${FEE_RATE_BP:-1000}
+      - PASS_BP=${PASS_BP:-8500}
+      - FAIL_BP=${FAIL_BP:-5000}
+      - REVIEW_MARGIN_BP=${REVIEW_MARGIN_BP:-500}
+      - MAX_JOB_CENTS=${MAX_JOB_CENTS:-50000}
+      - DAILY_CAP_CENTS=${DAILY_CAP_CENTS:-200000}
+      - AGENT_API_KEYS=${AGENT_API_KEYS}
+      - PUBLIC_BASE_URL=${PUBLIC_BASE_URL:-http://localhost:8000}
+
+volumes:
+  mongo_data:

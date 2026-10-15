@@ -1,0 +1,13 @@
+{
+  "id": "A3",
+  "name": "empty delivery",
+  "surface": "all deterministic rules",
+  "expect_rule_pass": [],
+  "expect_rule_fail": [
+    "schema",
+    "length",
+    "terms"
+  ],
+  "expect_injection": false,
+  "content": ""
+}
