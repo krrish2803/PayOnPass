@@ -187,8 +187,8 @@ Verified live against real services (not mocks):
 - ✅ LLM (Gemini 2.5 Flash via OpenAI-compatible gateway) — returns valid JSON at temperature 0.
 
 NOT yet proven live (do not claim these in the demo/README until run):
-- ❌ End-to-end **capture + refund** with a real buyer approval. Funding in `live` mode creates a real order, but buyer approval + capture + refund have not been exercised end-to-end on a funded job. Until then, refund behavior is covered by the mocked suite only.
-- ❌ **Render deploy** — `render.yaml` is present but the service has not been deployed/run on the live URL; S1–S5 have only been run locally.
+- ❌ End-to-end **capture + refund** with a real buyer approval. Funding in `live` mode creates a real order (verified live, see above), but buyer approval + capture + refund have not been exercised end-to-end on a funded job — needs a sandbox buyer account to approve the PayPal checkout. Until then, refund behavior is covered by the mocked suite only.
+- ✅ **Render deploy** — live at https://payonpass.onrender.com (health OK, Mongo connected, reconciler running). S1–S5 all run on the live URL; each creates a real PayPal sandbox order and a real LLM matrix (`online:gemini` for S1/S3/S4/S5; S2 exercised the `offline-demo:llm-unavailable` fallback, proving the fallback path works).
 - ❌ **Live-model fallback** — a 503 from the model routing the job to `NEEDS_REVIEW` (`AUDIT_ERROR`) has not been observed against the real provider.
 
 If a demo claims any of the ❌ items, it is overstating what has been verified.
