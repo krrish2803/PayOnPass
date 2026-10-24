@@ -13,8 +13,8 @@ export const PRODUCT_TAGLINE = "Pay only for work that passes the test.";
  */
 export const LINKS = {
   DEMO_VIDEO_URL: "",
-  LIVE_DEMO_URL: "",
-  GITHUB_URL: "https://github.com/krrish/payonpass",
+  LIVE_DEMO_URL: "https://payonpass.onrender.com/app",
+  GITHUB_URL: "https://github.com/krrish2803/PayOnPass",
   POSTMAN_URL: "",
-  README_URL: "https://github.com/krrish/payonpass#readme",
+  README_URL: "https://github.com/krrish2803/PayOnPass#readme",
 };
