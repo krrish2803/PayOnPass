@@ -178,6 +178,24 @@ one call.
 
 ---
 
+## 📡 Live Verification Status (sandbox, as of last check)
+
+Verified live against real services (not mocks):
+- ✅ MongoDB Atlas — connection + ping OK.
+- ✅ PayPal OAuth — access token issued for the sandbox client.
+- ✅ PayPal Payouts — a real payout batch was created to `PAYPAL_WORKER_EMAIL` (`batch_status: PENDING`, settles to `SUCCESS`); `SETTLE_MODE=paypal` is the default in `.env`.
+- ✅ LLM (Gemini 2.5 Flash via OpenAI-compatible gateway) — returns valid JSON at temperature 0.
+
+NOT yet proven live (do not claim these in the demo/README until run):
+- ❌ End-to-end **capture + refund** with a real buyer approval. Funding in `live` mode creates a real order, but buyer approval + capture + refund have not been exercised end-to-end on a funded job. Until then, refund behavior is covered by the mocked suite only.
+- ❌ **Render deploy** — `render.yaml` is present but the service has not been deployed/run on the live URL; S1–S5 have only been run locally.
+- ❌ **Live-model fallback** — a 503 from the model routing the job to `NEEDS_REVIEW` (`AUDIT_ERROR`) has not been observed against the real provider.
+
+If a demo claims any of the ❌ items, it is overstating what has been verified.
+
+
+---
+
 ## 📜 Legal & License
 Not affiliated with or endorsed by PayPal. PayPal is a trademark of PayPal, Inc.  
 MIT License. See [LICENSE](LICENSE) for details.
